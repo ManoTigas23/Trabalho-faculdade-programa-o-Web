@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="container header-content">
+            <h1>Reading Tracker</h1>
+            <nav class="main-nav">
+                <button type="button" class="nav-btn active" data-view="log">Reading Log</button>
+                <button type="button" class="nav-btn" data-view="books">Books</button>
+                <button type="button" class="nav-btn" data-view="authors">Authors</button>
+                <button type="button" id="btn-reset" class="btn-danger-outline">Reset Data</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="global-alert" class="alert hidden" role="alert"></div>
+
+        <!-- VIEW 1: READING LOG (FR-05) -->
+        <section id="view-log" class="view-section">
+            <div class="section-header">
+                <h2>Reading Log</h2>
+            </div>
+            <div class="table-responsive">
+                <table id="table-readings">
+                    <thead>
+                        <tr>
+                            <th data-sort="title" class="sortable">Title <span class="sort-icon"></span></th>
+                            <th data-sort="authors" class="sortable">Authors <span class="sort-icon"></span></th>
+                            <th data-sort="status" class="sortable">Status <span class="sort-icon"></span></th>
+                            <th data-sort="yearRead" class="sortable">Year Read <span class="sort-icon">▼</span></th>
+                            <th data-sort="grade" class="sortable">Grade <span class="sort-icon"></span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-readings"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VIEW 2: BOOKS (FR-02 & FR-03) -->
+        <section id="view-books" class="view-section hidden">
+            <div class="section-header">
+                <h2>Books</h2>
+                <button type="button" id="btn-new-book" class="btn-primary">+ New Book</button>
+            </div>
+            <div class="table-responsive">
+                <table id="table-books">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Authors</th>
+                            <th>Year</th>
+                            <th>Form / Mode</th>
+                            <th>Themes</th>
+                            <th>Readings</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-books"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VIEW 3: AUTHORS (FR-01) -->
+        <section id="view-authors" class="view-section hidden">
+            <div class="section-header">
+                <h2>Authors</h2>
+                <button type="button" id="btn-new-author" class="btn-primary">+ New Author</button>
+            </div>
+            <div class="table-responsive">
+                <table id="table-authors">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Nationality</th>
+                            <th>Birth Date</th>
+                            <th>Death Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-authors"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL: AUTHOR FORM -->
+    <dialog id="modal-author" class="modal">
+        <form id="form-author" novalidate>
+            <h3 id="modal-author-title">New Author</h3>
+            <input type="hidden" id="author-id">
+            
+            <div class="form-group">
+                <label for="author-name">Name *</label>
+                <input type="text" id="author-name" name="name" required>
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="author-country">Nationality</label>
+                <select id="author-country" name="countryId"></select>
+                <span class="field-error" data-error-for="countryId"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="author-birth">Birth Date</label>
+                    <input type="date" id="author-birth" name="birthDate">
+                    <span class="field-error" data-error-for="birthDate"></span>
+                </div>
+                <div class="form-group">
+                    <label for="author-death">Death Date</label>
+                    <input type="date" id="author-death" name="deathDate">
+                    <span class="field-error" data-error-for="deathDate"></span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" data-close-modal="modal-author">Cancel</button>
+                <button type="submit" class="btn-primary">Save Author</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL: BOOK FORM (+ OPTIONAL FIRST READING) -->
+    <dialog id="modal-book" class="modal modal-lg">
+        <form id="form-book" novalidate>
+            <h3 id="modal-book-title">New Book</h3>
+            <input type="hidden" id="book-id">
+
+            <div class="form-group">
+                <label for="book-title">Title *</label>
+                <input type="text" id="book-title" name="title" required>
+                <span class="field-error" data-error-for="title"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="book-year">Original Publication Year (negative for BC)</label>
+                    <input type="number" id="book-year" name="publicationYear" placeholder="e.g. 1984 or -429">
+                    <span class="field-error" data-error-for="publicationYear"></span>
+                </div>
+                <div class="form-group">
+                    <label for="book-form">Form</label>
+                    <select id="book-form" name="form"></select>
+                    <span class="field-error" data-error-for="form"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="book-mode">Mode of Expression</label>
+                    <select id="book-mode" name="mode"></select>
+                    <span class="field-error" data-error-for="mode"></span>
+                </div>
+                <div class="form-group">
+                    <label for="book-content">Content</label>
+                    <select id="book-content" name="content"></select>
+                    <span class="field-error" data-error-for="content"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="book-authors">Authors (Hold Ctrl/Cmd to select multiple)</label>
+                <select id="book-authors" name="authorIds" multiple size="4"></select>
+                <span class="field-error" data-error-for="authorIds"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="book-themes">Themes (Hold Ctrl/Cmd to select multiple)</label>
+                <select id="book-themes" name="themeIds" multiple size="4"></select>
+                <div class="inline-create">
+                    <input type="text" id="new-theme-input" placeholder="New theme name...">
+                    <button type="button" id="btn-add-theme" class="btn-secondary">Add Theme</button>
+                </div>
+                <span class="field-error" data-error-for="theme"></span>
+            </div>
+
+            <!-- FIRST READING SECTION (Only shown when creating a new book - FR-03) -->
+            <fieldset id="first-reading-fieldset" class="fieldset-box">
+                <legend>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="include-first-reading" checked>
+                        Add initial reading (e.g., Wishlist or already Read)
+                    </label>
+                </legend>
+                <div id="first-reading-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="init-reading-status">Status *</label>
+                            <select id="init-reading-status" name="status"></select>
+                            <span class="field-error" data-error-for="status"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="init-reading-priority">Priority (Want to read only)</label>
+                            <select id="init-reading-priority" name="priority"></select>
+                            <span class="field-error" data-error-for="priority"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="init-reading-year">Year Read</label>
+                            <input type="number" id="init-reading-year" name="yearRead">
+                            <span class="field-error" data-error-for="yearRead"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="init-reading-grade">Grade (0.0 to 10.0, step 0.5)</label>
+                            <input type="number" id="init-reading-grade" name="grade" step="0.5" min="0" max="10">
+                            <span class="field-error" data-error-for="grade"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="init-reading-rec">Recommended By</label>
+                        <input type="text" id="init-reading-rec" name="recommendedBy">
+                    </div>
+                    <div class="form-group">
+                        <label for="init-reading-notes">Notes</label>
+                        <textarea id="init-reading-notes" name="notes" rows="2"></textarea>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" data-close-modal="modal-book">Cancel</button>
+                <button type="submit" class="btn-primary">Save Book</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL: MANAGE BOOK READINGS & READING FORM (FR-03 & FR-04) -->
+    <dialog id="modal-reading" class="modal">
+        <form id="form-reading" novalidate>
+            <h3 id="modal-reading-title">Add Reading</h3>
+            <input type="hidden" id="reading-id">
+            <input type="hidden" id="reading-book-id">
+            <p id="reading-book-label" class="subtitle"></p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="reading-status">Status *</label>
+                    <select id="reading-status" name="status"></select>
+                    <span class="field-error" data-error-for="status"></span>
+                </div>
+                <div class="form-group">
+                    <label for="reading-priority">Priority (Want to read only)</label>
+                    <select id="reading-priority" name="priority"></select>
+                    <span class="field-error" data-error-for="priority"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="reading-year">Year Read</label>
+                    <input type="number" id="reading-year" name="yearRead">
+                    <span class="field-error" data-error-for="yearRead"></span>
+                </div>
+                <div class="form-group">
+                    <label for="reading-grade">Grade (0.0 to 10.0, step 0.5)</label>
+                    <input type="number" id="reading-grade" name="grade" step="0.5" min="0" max="10">
+                    <span class="field-error" data-error-for="grade"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="reading-rec">Recommended By</label>
+                <input type="text" id="reading-rec" name="recommendedBy">
+                <span class="field-error" data-error-for="recommendedBy"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="reading-notes">Notes</label>
+                <textarea id="reading-notes" name="notes" rows="3"></textarea>
+                <span class="field-error" data-error-for="notes"></span>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" data-close-modal="modal-reading">Cancel</button>
+                <button type="submit" class="btn-primary">Save Reading</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
